@@ -14,6 +14,7 @@ categories = ["placeholder"]
 [dependencies]
 anyhow = "1.0"
 console = "0.9.2"
+derive-getters = "0.1.0"
 dialoguer = "0.5.0"
 dirs = "2.0"
 env_logger = "0.7.1"
