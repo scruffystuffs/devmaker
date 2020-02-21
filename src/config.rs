@@ -75,6 +75,28 @@ impl TryFrom<Opt> for Config {
     }
 }
 
+fn parse_askfile<P: AsRef<Path>>(file: P) -> Result<Option<EnvMap>> {
+    debug!("Parsing askfile: {}", file.as_ref().display());
+    let reader = BufReader::new(File::open(file)?);
+    let pairs: Vec<_> = reader.lines().collect::<Result<_, _>>()?;
+    parse_var_strings(pairs)
+}
+
+fn parse_cmd_vars(pairs: Vec<String>) -> Result<Option<EnvMap>> {
+    parse_var_strings(pairs)
+}
+
+fn parse_var_strings<I: IntoIterator<Item = String>>(iter: I) -> Result<Option<EnvMap>> {
+    let mut map = EnvMap::new();
+    for pair in iter {
+        if let Some((key, value)) = try_parse_var_string(&pair, "askfile")? {
+            // Overwrite conflicting lines
+            map.insert(key, value);
+        }
+    }
+    Ok(Some(map))
+}
+
 fn try_parse_var_string(line: &str, from: &str) -> Result<Option<(String, String)>> {
     let pattern = Regex::new(r"^\s*([A-Z\d][A-Z\d_]+)\s*=\s*(.+?)\s*$")?;
     let captures = pattern.captures(line).ok_or(anyhow!(format!(
@@ -94,26 +116,4 @@ fn try_parse_var_string(line: &str, from: &str) -> Result<Option<(String, String
         .to_owned();
 
     Ok(Some((key, value)))
-}
-
-fn parse_var_strings<I: IntoIterator<Item = String>>(iter: I) -> Result<Option<EnvMap>> {
-    let mut map = EnvMap::new();
-    for pair in iter {
-        if let Some((key, value)) = try_parse_var_string(&pair, "askfile")? {
-            // Overwrite conflicting lines
-            map.insert(key, value);
-        }
-    }
-    Ok(Some(map))
-}
-
-fn parse_askfile<P: AsRef<Path>>(file: P) -> Result<Option<EnvMap>> {
-    debug!("Parsing askfile: {}", file.as_ref().display());
-    let reader = BufReader::new(File::open(file)?);
-    let pairs: Vec<_> = reader.lines().collect::<Result<_, _>>()?;
-    parse_var_strings(pairs)
-}
-
-fn parse_cmd_vars(pairs: Vec<String>) -> Result<Option<EnvMap>> {
-    parse_var_strings(pairs)
 }
