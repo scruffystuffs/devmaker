@@ -29,6 +29,10 @@ pub(crate) struct Opt {
     #[structopt(short, long)]
     pub single_job: Option<String>,
 
+    /// Sets all queried vars to empty strings.  Useful for testing.
+    #[structopt(short = "e", long)]
+    pub force_empty_vars: bool,
+
     /// The root directory conatining all job specs.
     #[structopt(index = 1)]
     pub script_root: PathBuf,

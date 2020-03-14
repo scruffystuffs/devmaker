@@ -11,13 +11,14 @@ use crate::cli::Opt;
 use crate::common::{secure_name_check, EnvMap};
 
 pub(crate) struct Config {
-    pub root_dir: PathBuf,
     pub ask_file_vars: Option<EnvMap>,
     pub cmd_vars: Option<EnvMap>,
+    pub root_dir: PathBuf,
     pub single_job: Option<String>,
-
+    
     pub allow_env: bool,
     pub dry_run: bool,
+    pub empty_vars: bool,
     pub interactive: bool,
 }
 
@@ -44,7 +45,7 @@ impl Config {
 impl TryFrom<Opt> for Config {
     type Error = Error;
     fn try_from(o: Opt) -> StdResult<Self, Self::Error> {
-        let root_dir: PathBuf = o.script_root;
+        let allow_env = !&o.no_allow_env;
         let ask_file_vars = if let Some(file) = o.ask_file {
             parse_askfile(file)?
         } else {
@@ -55,19 +56,21 @@ impl TryFrom<Opt> for Config {
         } else {
             None
         };
-        let single_job = o.single_job;
-        let allow_env = !&o.no_allow_env;
         let dry_run = o.dry_run;
+        let empty_vars = o.force_empty_vars;
         let interactive = o.interactive;
+        let root_dir: PathBuf = o.script_root;
+        let single_job = o.single_job;
 
         Ok(Self {
-            root_dir,
+            allow_env,
             ask_file_vars,
             cmd_vars,
-            single_job,
-            allow_env,
             dry_run,
+            empty_vars,
             interactive,
+            root_dir,
+            single_job,
         })
     }
 }

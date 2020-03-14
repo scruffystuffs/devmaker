@@ -114,7 +114,7 @@ impl ReadyJob {
 
     pub fn report(&self, job_num: usize) -> String {
         let mut report = String::new();
-        report.push_str("Running job ");
+        report.push_str("Would run job ");
         report.push_str(&format!("{:03}", job_num));
         report.push_str(": ");
         report.push_str(&job_style().apply_to(&self.name).to_string());
@@ -150,7 +150,7 @@ impl ReadyJob {
             .env("TMP_DIR", tmp_dir.path())
             .env("TEMP_DIR", tmp_dir.path())
             .status()?;
-        drop(tmp_dir); // Enforce that we didn't drop until here.
+        drop(tmp_dir); // Statically enforce that we didn't drop until here.
         if status.success() {
             Ok(())
         } else {
@@ -265,6 +265,14 @@ fn parse_info_file<P: AsRef<Path>>(root: P) -> Result<InfoSpec> {
     Ok(serde_json::from_reader(reader)?)
 }
 
+fn try_empty_var(config: &Config) -> Option<String> {
+    if config.empty_vars {
+        Some(String::default())
+    } else {
+        None
+    }
+}
+
 fn try_var_from_env(raw: &str, config: &Config) -> Option<String> {
     if config.allow_env {
         if let Ok(val) = env::var(secure_name_check(raw).0) {
@@ -308,7 +316,8 @@ fn try_ask_user_for_var(name: &str, config: &Config, secure: bool) -> Option<Str
 fn query_single_var(name: &str, config: &Config) -> Result<(String, String)> {
     let (runnable_name, is_secure) = secure_name_check(name);
 
-    let value = try_var_from_env(&runnable_name, config)
+    let value = try_empty_var(config)
+        .or_else(|| try_var_from_env(&runnable_name, config))
         .or_else(|| try_var_from_cmd(&runnable_name, config))
         .or_else(|| try_var_from_askfile(&runnable_name, config))
         .or_else(|| try_ask_user_for_var(&runnable_name, config, is_secure))
@@ -348,7 +357,7 @@ fn fill_asked_vars(mut spec: JobSpec, answers: &EnvMap) -> Result<ReadyJob> {
     }
 
     for (k, v) in spec.provided_env.drain() {
-        map.insert(k, v);
+        map.insert(encode_key(&k), v);
     }
 
     Ok(ReadyJob::new(
