@@ -159,6 +159,7 @@ fn schedule_specs(jobs: &[ReadyJob]) -> Result<Vec<ReadyJob>> {
 
     macro_rules! schedule {
         ($x:expr) => {
+            debug!("Schedule: {}", $x.name());
             scheduled_names.insert(&$x.name());
             scheduled.push($x.clone());
         };

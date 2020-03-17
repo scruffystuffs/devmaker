@@ -15,7 +15,9 @@ fn encode_key(key: &str) -> String {
 fn query_single_var(name: &str, config: &Config) -> Result<(String, String)> {
     let (runnable_name, is_secure) = secure_name_check(name);
 
-    let value = try_empty_var(config)
+    debug!("Querying var: {}", runnable_name);
+
+    let value = try_empty_var(&runnable_name, config)
         .or_else(|| try_var_from_env(&runnable_name, config))
         .or_else(|| try_var_from_cmd(&runnable_name, config))
         .or_else(|| try_var_from_askfile(&runnable_name, config))
@@ -29,6 +31,8 @@ fn try_ask_user_for_var(name: &str, config: &Config, secure: bool) -> Option<Str
     if !config.interactive {
         return None;
     };
+
+    debug!("Interactive query: {}", name);
 
     let message = "Please enter the value for the variable";
 
@@ -48,8 +52,9 @@ fn try_ask_user_for_var(name: &str, config: &Config, secure: bool) -> Option<Str
     .ok()
 }
 
-fn try_empty_var(config: &Config) -> Option<String> {
+fn try_empty_var(name: &str, config: &Config) -> Option<String> {
     if config.empty_vars {
+        debug!("No-fill: {}", name);
         Some(String::default())
     } else {
         None
@@ -57,16 +62,20 @@ fn try_empty_var(config: &Config) -> Option<String> {
 }
 
 fn try_var_from_askfile(name: &str, config: &Config) -> Option<String> {
+    debug!("Trying askfile for var: {}", name);
     config.get_file_var(name)
 }
 
 fn try_var_from_cmd(name: &str, config: &Config) -> Option<String> {
+    debug!("Trying cmd line for var: {}", name);
     config.get_cmd_var(name)
 }
 
-fn try_var_from_env(raw: &str, config: &Config) -> Option<String> {
+fn try_var_from_env(name: &str, config: &Config) -> Option<String> {
     if config.allow_env {
-        if let Ok(val) = env::var(secure_name_check(raw).0) {
+        debug!("Trying environment for var: {}", name);
+
+        if let Ok(val) = env::var(name) {
             return Some(val);
         }
     }
