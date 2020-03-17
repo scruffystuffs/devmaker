@@ -126,6 +126,7 @@ impl ReadyJob {
             .env("TMP_DIR", tmp_dir.path())
             .env("TEMP_DIR", tmp_dir.path())
             .status()?;
+        debug!("Dropping temp dir: {}", tmp_dir.path().display());
         drop(tmp_dir); // Statically enforce that we didn't drop until here.
         if status.success() {
             Ok(())

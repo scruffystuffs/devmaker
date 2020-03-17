@@ -1,0 +1,11 @@
+#! /bin/bash
+set -e
+
+cargo build --release
+rm -rf ubuntu-dev*
+mkdir -p ubuntu-dev/scripts
+cp askfile ubuntu-dev/
+cp target/release/devmaker ubuntu-dev/
+cp -r ../devmaker-ubuntu/src/* ubuntu-dev/scripts/
+tar -czf ubuntu-dev.tar.gz ubuntu-dev
+mv ubuntu-dev.tar.gz /mnt/hostshare/
