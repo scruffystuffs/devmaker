@@ -15,7 +15,7 @@ pub(crate) struct Config {
     pub cmd_vars: Option<EnvMap>,
     pub root_dir: PathBuf,
     pub single_job: Option<String>,
-    
+
     pub allow_env: bool,
     pub dry_run: bool,
     pub empty_vars: bool,

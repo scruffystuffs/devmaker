@@ -2,7 +2,6 @@
 #![deny(clippy::nursery)]
 #![warn(clippy::cargo)]
 #![deny(clippy::all)]
-
 #![allow(clippy::multiple_crate_versions)]
 
 #[macro_use]
@@ -214,23 +213,28 @@ fn get_job_names<P: AsRef<Path>>(root: P) -> Result<Vec<String>> {
     let mut match_collector = Vec::<String>::new();
     let mut hit_error = false;
     for runfile in glob::glob(&pattern)? {
-        if let Ok(path) = runfile {
-            let name = path
-                .parent()
-                .ok_or(anyhow!(format!("Unexpectable path {}", path.display())))?
-                .file_name()
-                .ok_or(anyhow!(format!("Unusable directory name {}", path.display())))?;
-            if let Some(valid_name) = name.to_str() {
-                match_collector.push(valid_name.to_string());
-            } else {
-                hit_error = true;
-                eprintln!("Invalid job name: {}", name.to_string_lossy());
+        match runfile {
+            Ok(path) => {
+                let name = path
+                    .parent()
+                    .ok_or(anyhow!(format!("Unexpectable path {}", path.display())))?
+                    .file_name()
+                    .ok_or(anyhow!(format!(
+                        "Unusable directory name {}",
+                        path.display()
+                    )))?;
+                if let Some(valid_name) = name.to_str() {
+                    match_collector.push(valid_name.to_string());
+                } else {
+                    hit_error = true;
+                    eprintln!("Invalid job name: {}", name.to_string_lossy());
+                }
             }
-        } else {
-            hit_error = true;
-            let glob_err = runfile.unwrap_err(); // We know it's an error.
-            eprintln!("GlobError: {}", glob_err);
-        }
+            Err(glob_err) => {
+                hit_error = true;
+                eprintln!("GlobError: {}", glob_err);
+            }
+        };
     }
     if hit_error {
         Err(anyhow!("Failed to retrieve job names"))
