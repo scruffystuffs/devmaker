@@ -1,7 +1,10 @@
 name: CI
 
 on:
+  pull_request:
   push:
+    branch:
+      - 'master'
     tags:
       - 'v*.*.*'
 
@@ -40,7 +43,6 @@ jobs:
             rust: beta
           - build: nightly
             rust: nightly
-            benches: true
 
     steps:
       - name: Checkout
@@ -49,6 +51,7 @@ jobs:
       - name: Install rust
         uses: actions-rs/toolchain@v1
         with:
+          toolchain: ${{ matrix.rust || 'stable' }}
           profile: minimal
           override: true
 
@@ -56,20 +59,11 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: ${{ matrix.features }}
 
       - name: Test
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: ${{ matrix.features }}
-
-      - name: Test all benches
-        if: matrix.benches
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --benches ${{ matrix.features }}
   
   deploy:
     name: deploy
@@ -91,7 +85,7 @@ jobs:
         with:
           use-cross: true
           command: build
-          args: --release --target ${{ matrix.target }}
+          args: --release
 
       - name: Package
         shell: bash
