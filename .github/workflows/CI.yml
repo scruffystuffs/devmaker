@@ -84,7 +84,6 @@ jobs:
       - name: Build target
         uses: actions-rs/cargo@v1
         with:
-          use-cross: true
           command: build
           args: --release
 
@@ -97,7 +96,6 @@ jobs:
           
       - name: Publish
         uses: softprops/action-gh-release@v1
-        # TODO: if any of the build step fails, the release should be deleted.
         with:
             files: 'devmaker'
             draft: true
