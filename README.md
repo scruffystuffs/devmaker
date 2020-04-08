@@ -40,3 +40,9 @@ provided and asked variables.  Then we run the `deps.sh` script if it exists, sk
 it doesn't.  Then we run the `run.*` file found earlier, known as the *runner*.  If either
 process returns a non-zero exit code, the job will stop executing, the error will be
 reported, and no further jobs will run.
+
+## Releases
+
+Everything is done through github actions.  Releases are done by pushing to the repo.
+Code must pass rustfmt and clippy checks, and will build and check on PR's and master
+branch pushes.  If a tag is pushed, a draft release is created as well.  Cool beens.
