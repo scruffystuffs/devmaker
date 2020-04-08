@@ -41,6 +41,29 @@ it doesn't.  Then we run the `run.*` file found earlier, known as the *runner*. 
 process returns a non-zero exit code, the job will stop executing, the error will be
 reported, and no further jobs will run.
 
+## Job scripts
+
+Job scripts have a few guarantees:
+
+* If the `run.*` or `deps.sh` file is not executable, we make it executable.  We can't
+guarantee that either is actually a shell file with a specific shell, so we have to.
+* several env variables are provided:
+  * HOME - should be set anyway, but we double check and try to set it anyway, just in case.
+  * USER & USERNAME - set equal to `whoami` output.  Again, just in case.
+  * SCRIPT_DIR - the directory of the job, to access more read-only/executable files packed
+  with a job.
+  * TMP_DIR & TEMP_DIR - a temp directory created right before the job is run, and deleted
+  right after it finishes.  For writeable temporary files.  Secure by default.
+
+We also have a few expectations:
+
+* User must exist in `/etc/passwd`.
+* User must be a sudoer.  Probably with `NOPASSWD`.  We cannot enforce this, but trust me
+when I say you want it.  See
+[here](https://askubuntu.com/questions/147241/execute-sudo-without-password) for more info
+on what auto-sudo looks like.
+* `curl` must be installed, and on the path.
+
 ## Releases
 
 Everything is done through github actions.  Releases are done by pushing to the repo.
