@@ -18,8 +18,8 @@ fn query_single_var(name: &str, config: &Config) -> Result<(String, String)> {
     debug!("Querying var: {}", runnable_name);
 
     let value = try_empty_var(&runnable_name, config)
-        .or_else(|| try_var_from_env(&runnable_name, config))
         .or_else(|| try_var_from_cmd(&runnable_name, config))
+        .or_else(|| try_var_from_env(&runnable_name, config))
         .or_else(|| try_var_from_askfile(&runnable_name, config))
         .or_else(|| try_ask_user_for_var(&runnable_name, config, is_secure))
         .ok_or(anyhow!(format!("Cound not resolve var: {}", runnable_name)))?;
